@@ -1,0 +1,4 @@
+Circuit: * C:\Users\juani\Desktop\Ing Electronica\4To Año\Segundo Semestre\DSP\TP 1\Draft1.asc
+
+Fatal Error: Unknown subcircuit called in:
+   xu1 n001 n003 n001 opamp aol=100k gbw=10meg
