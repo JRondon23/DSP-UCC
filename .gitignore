@@ -1,0 +1,62 @@
+# ==========================================
+# 1. Archivos de texto generados (.txt)
+# ==========================================
+# Ignora todos los .txt generados por simulaciones o ejecuciones
+*.txt
+
+# EXCEPCIONES: Archivos de texto que SÍ deben guardarse en Git
+!README.txt
+!requirements.txt
+!CMakeLists.txt
+
+
+# ==========================================
+# 2. Compilación en C (Ejecutables y Objetos)
+# ==========================================
+# Archivos objeto y de dependencias
+*.o
+*.obj
+*.d
+*.su
+
+# Archivos de salida de compiladores / microcontroladores
+*.elf
+*.bin
+*.hex
+*.map
+*.out
+
+# Carpetas típicas de salida de compilación (GCC / STM32CubeIDE / Make)
+Debug/
+Release/
+build/
+bin/
+
+
+# ==========================================
+# 3. GNU Octave / MATLAB
+# ==========================================
+# Variables guardadas o espacio de trabajo de Octave
+*.mat
+octave-workspace
+octave-core
+
+# Salidas de gráficos o imágenes exportadas dinámicamente
+*.png
+*.jpg
+*.eps
+*.fig
+
+
+# ==========================================
+# 4. Entornos de desarrollo y Sistema Operativo
+# ==========================================
+# VS Code / STM32CubeIDE / Eclipse
+.vscode/
+.settings/
+.cache/
+*.log
+
+# Windows / macOS
+.DS_Store
+Thumbs.db
