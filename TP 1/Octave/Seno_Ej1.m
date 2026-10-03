@@ -5,7 +5,7 @@
 
   fs = 2000;          % Frecuencia de muestreo
   t_dur = 0.2;         % Duración de la simulación en segundos
-  N1 = fs*t_dur;       % Cantidad de muestras
+  N1 = fs*t_dur;       % Cantidad de muestras, actualmente serian 400 taps
   n1 = 0:N1-1;         % Ancho de simulacion
   t1 = n1/fs;          % Cada cuanto muestrea
 
@@ -24,7 +24,8 @@
   x_quantized = round((x + 1) * (levels/2 - 1)) / (levels/2 - 1) - 1;
 
   % Para cuantizar lo que hace es subirlo de 0 a 2 (Esto porque la amplitud actual es de [-1;1]
-  % Despues lo escala porque el redondeo es a numeros enteros.
+  % Despues lo escala porque el redondeo es a numeros enteros y mejora la resolucion
+  % La cuantizacion lo hace con el redondeo
   % Redondeo y luego lo desescalo -> Esto porque necesito trabajarlo en numeros con coma
   % Elimino el offset.
 
