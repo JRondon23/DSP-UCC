@@ -5,7 +5,7 @@ pkg load signal
 clear all; close all; clc;
 
 % Parámetros del filtro pasabajos
-type = 'stop';
+type = 'high';
 fs = 8000;
 %fc = 1100; %USADA PARA LOS FILTROS DE UNA UNICA FRECUENCIA DE CORTE
 %Usados para cuando se necesitan dos frecuencias
@@ -15,7 +15,8 @@ order = 130;
 fmax = fs/2;
 
 % Cálculo de coeficientes
-b = fir1(order, [fc1/fmax,fc2/fmax], type);
+%b = fir1(order, [fc1/fmax,fc2/fmax], type);
+b = fir1(order, fc/fmax, type);
 
 figure(1);
 freqz(b);

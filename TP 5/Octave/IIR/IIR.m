@@ -4,12 +4,13 @@ clear all; close all; clc;
 
 
 fs = 8000;
-fc = 1100; % Frecuencia para cuando hay una sola Fc
-%fc1 = 300;
-%fc2 = 500;
+%fc = 1100; % Frecuencia para cuando hay una sola Fc
+fc1 = 200;
+fc2 = 300;
 order = 6;
 fmax = fs/2;
-[b, a] = cheby1(order,1,fc/fmax, 'high');
+%[b, a] = cheby1(order,1,fc/fmax, 'stop');
+[b, a] = cheby2(order,40,[fc1/fmax,fc2/fmax], 'stop');
 freqz (b, a);
 
 % --- Generar archivo de cabecera con los coeficientes (filter.h) ---
