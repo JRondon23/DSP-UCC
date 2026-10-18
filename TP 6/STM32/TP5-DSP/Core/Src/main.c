@@ -37,9 +37,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define LINE_ELEMENTS 131
-#define TAM_CONV LINE_ELEMENTS+N_FIR-1
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -52,27 +49,28 @@
 /* USER CODE BEGIN PV */
 
 volatile uint32_t muestra = 0;
+
 volatile uint8_t adc_ready = 0;
-float input_signal[LINE_ELEMENTS] = { 0 };
-float conv[TAM_CONV] = { 0 };
+
+float input_signal[N_FIR] = { 0 }; //Es del tamaño de la cantidad de coeficientes
+
+float conv = 0; //No es arreglo porque se muestra en tiempo real, no debe ser almacenado
+
+uint32_t dac_value = 0; //valor que almacena la combinacion del DAC
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
-void generar_ConvFIR(float coeficientes[LINE_ELEMENTS], float *senal,
-		float *conv) {
-	for (int i = 0; i < TAM_CONV; i++) {
-		conv[i] = 0.0f;
-	}
+void generar_ConvFIR(float *coeficientes, float *senal, float *conv) {
 
-	for (int n = 0; n < TAM_CONV; n++) {
-		for (int k = 0; k < N_FIR; k++) {
-			if ((n - k) >= 0 && (n - k) < LINE_ELEMENTS) {
-				conv[n] += coeficientes[k] * senal[n - k];
-			}
-		}
+	*conv = 0;
+
+	for (int i = 0; i < N_FIR; ++i) {
+
+		*conv += (coeficientes[i] * senal[i]); //El valor de Y actual es la sumatoria de cada elemento del buffer multiplicado por coeficiente fijo
 	}
 }
 
@@ -130,9 +128,14 @@ int main(void) {
 
 		if (adc_ready == 1) {
 
-			generar_ConvFIR(fir_pasabajo, input_signal, conv);
-			HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, conv); //le asigno valor
-			HAL_DAC_Start(&hdac1, DAC_CHANNEL_1); //Pongo a convertir.
+			generar_ConvFIR(fir_pasabajo, input_signal, &conv); //le paso coeficientes, señal y que me retorne conv
+
+			dac_value = (uint32_t) (conv * 4095.0f / 3.3f); //lo casteo despues para no perder el valor de conv
+
+
+			if (dac_value > 4095) dac_value = 4095; //saturo si lo supera.
+
+			HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, dac_value); //le asigno valor
 
 			adc_ready = 0;
 		}
@@ -188,11 +191,10 @@ void SystemClock_Config(void) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-	if (htim->Instance == TIM2 && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
+	if (htim->Instance == TIM2) {
 
 		HAL_ADC_Start_IT(&hadc1);
 
-		adc_ready = 1;
 	}
 
 }
@@ -201,12 +203,13 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 
 	if (hadc->Instance == ADC1) {
 		uint8_t i;
-		for (i = LINE_ELEMENTS; i > 0; --i) {
+		for (i = N_FIR-1; i > 0; --i) { //El buffer es del tamaño de NFIR
 			input_signal[i] = input_signal[i - 1];
 		}
 		muestra = HAL_ADC_GetValue(hadc);
 		input_signal[0] = muestra * 3.3f / 4095.0f;
 
+		adc_ready = 1; //si termino de convertir avisa que llego dato
 	}
 
 }
