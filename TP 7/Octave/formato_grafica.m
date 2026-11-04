@@ -1,0 +1,26 @@
+function formato_grafica(ax, curvas, nombres)
+  % Propiedades explicitas para no depender de las preferencias de Octave.
+  set(ancestor(ax,'figure'),'color','white');
+  set(ax,'color','white','xcolor','black','ycolor','black', ...
+      'fontsize',13,'fontname','Arial','linewidth',1, ...
+      'box','on','xgrid','on','ygrid','on', ...
+      'gridcolor',[0.35 0.35 0.35],'gridalpha',1,'gridlinestyle',':', ...
+      'layer','top');
+  set(get(ax,'xlabel'),'color','black','fontsize',14);
+  set(get(ax,'ylabel'),'color','black','fontsize',14);
+  set(get(ax,'title'),'color','black','fontsize',15);
+  set(curvas,'color',[1 0 0],'linewidth',1.2);
+  % Algunos backends omiten los ejes auxiliares de legend al exportar.
+  % Estas leyendas son objetos del propio eje y se conservan en el PNG.
+  legend(ax,'off');
+  for k=1:numel(curvas)
+    estilo = 'continua';
+    if strcmp(get(curvas(k),'linestyle'),'--'), estilo = 'discontinua'; end
+    text(ax,0.98,0.96-0.10*(k-1),[nombres{k} ' (roja ' estilo ')'], ...
+         'units','normalized','horizontalalignment','right', ...
+         'verticalalignment','top','fontsize',12,'color','black', ...
+         'backgroundcolor','white','edgecolor','black','margin',6, ...
+         'interpreter','none');
+  end
+  drawnow();
+end

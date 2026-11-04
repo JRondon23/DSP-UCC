@@ -1,0 +1,2 @@
+fs_Hz,taps,retardo_muestras,corte_Hz,ganancia_corte_dB,borde_paso_verificado_Hz,borde_rechazo_Hz,perdida_max_paso_dB,atenuacion_rechazo_dB
+8000,129,64,200,-6.02857054,100,350,0.0753517969,60.7043709
