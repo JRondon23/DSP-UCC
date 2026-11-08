@@ -26,9 +26,6 @@
  *
  */
 
-
-
-
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -76,7 +73,6 @@ COM_InitTypeDef BspCOMInit;
 arm_fir_instance_f32 FIR; //Creo una instancia FIR float
 float32_t Buffer_estado[N_FIR + 1]; //Por seguridad le doy +1
 
-
 /*
  *
  * Inicializo variables para CMSIS Punto Fijo
@@ -84,7 +80,8 @@ float32_t Buffer_estado[N_FIR + 1]; //Por seguridad le doy +1
  */
 
 //arm_fir_instance_q15 FIR; //Creo una instancia FIR Q15 (punto fijo)
-//q15_t Buffer_estado[N_FIR + 1];
+//q15_t Buffer_estado[N_FIR + 2];
+//q15_t coef[N_FIR + 1];
 
 /*----------------------------*/
 
@@ -101,7 +98,7 @@ float32_t conv = 0;
 
 /*
  *
- * 	Variables para FIR Punto flotante
+ * 	Variables para FIR Punto fijo
  *
  */
 //q15_t muestra = 0;
@@ -128,6 +125,7 @@ int main(void) {
 
 	/* USER CODE BEGIN 1 */
 
+	//arm_float_to_q15(fir_pasabajo,coef,N_FIR + 1); //Convierto Coeficientes
 	/* USER CODE END 1 */
 
 	/* MCU Configuration--------------------------------------------------------*/
@@ -165,7 +163,7 @@ int main(void) {
 	 *	@1, es el tamaño del bloque que trabaja, lo pongo en 1 porque trabajamos muestra a muestra
 	 */
 
-	arm_fir_init_f32(&FIR, N_FIR, (float32_t*) fir_pasabajo, Buffer_estado, 1);
+	arm_fir_init_f32(&FIR, N_FIR + 1, (float32_t*)fir_pasabajo, Buffer_estado, 1);
 
 	/*
 	 *
@@ -179,7 +177,7 @@ int main(void) {
 	 *	@1, es el tamaño del bloque que trabaja, lo pongo en 1 porque trabajamos muestra a muestra
 	 */
 
-	//arm_fir_init_q15(&FIR, N_FIR, (float32_t*) fir_pasabajo, Buffer_estado, 1);
+	//arm_fir_init_q15(&FIR, N_FIR+1, coef, Buffer_estado, 1);
 	/*------------------------------------------------------------------------------*/
 
 	HAL_TIM_Base_Start_IT(&htim2);
@@ -214,25 +212,19 @@ int main(void) {
 
 		if (adc_ready == 1) {
 
-			/*
-			 *
-			 * FIR float
-			 *
-			 */
+			/* --- FIR float --- */
 			arm_fir_f32(&FIR, &muestra, &conv, 1);
+			float32_t v = conv * 4095.0f / 3.3f;
+			if (v < 0.0f)    v = 0.0f;
+			if (v > 4095.0f) v = 4095.0f;
 
-			/*
-			 *
-			 * FIR Punto fijo
-			 *
-			 */
+			/* --- FIR punto fijo --- */
 			//arm_fir_q15(&FIR, &muestra, &conv, 1);
+			//int32_t v = conv >> 3;
+			//if (v < 0) v = 0;
+			//if (v > 4095) v = 4095;
 
-			uint32_t valor_dac = (uint32_t) (conv * 4095.0f / 3.3f);
-
-			HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, valor_dac); //le asigno valor
-			HAL_DAC_Start(&hdac1, DAC_CHANNEL_1); //Pongo a convertir.
-
+			HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (uint32_t)v);
 			adc_ready = 0;
 		}
 
@@ -288,11 +280,10 @@ void SystemClock_Config(void) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-	if (htim->Instance == TIM2 && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
+	if (htim->Instance == TIM2) {
 
 		HAL_ADC_Start_IT(&hadc1);
 
-		adc_ready = 1;
 	}
 
 }
@@ -300,14 +291,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 
 	if (hadc->Instance == ADC1) {
-//	uint8_t i;
-//	for (i = N_FIR; i > 0; --i) {
-//		input_signal[i] = input_signal[i - 1];
-//	}
-		muestra = HAL_ADC_GetValue(hadc) * 3.3f / 4095.0; //es directamente la muestra la que nos llega
 
-//	input_signal[0] = muestra * 3.3f / 4095.0;
+		/*
+		 * 	Caso Punto Flotante
+		 *
+		 */
 
+		muestra = HAL_ADC_GetValue(hadc) * 3.3f / 4095.0f; //es directamente la muestra la que nos llega
+		adc_ready = 1;
+
+		/*
+		 *
+		 * 	Caso Punto Fijo
+		 *
+		 */
+
+		//muestra = (q15_t)(HAL_ADC_GetValue(hadc) << 3);   // 12 bits → rango 0..32760 de Q15
+		//adc_ready = 1;
 	}
 
 }
