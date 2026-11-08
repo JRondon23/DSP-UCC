@@ -5,13 +5,13 @@ pkg load signal
 clear all; close all; clc;
 
 % Parámetros del filtro pasabajos
-type = 'high';
+type = 'low';
 fs = 8000;
-%fc = 1100; %USADA PARA LOS FILTROS DE UNA UNICA FRECUENCIA DE CORTE
+fc = 200; %USADA PARA LOS FILTROS DE UNA UNICA FRECUENCIA DE CORTE
 %Usados para cuando se necesitan dos frecuencias
-fc1 = 300;
-fc2 = 500;
-order = 130;
+%fc1 = 300;
+%fc2 = 500;
+order = 20;
 fmax = fs/2;
 
 % Cálculo de coeficientes
