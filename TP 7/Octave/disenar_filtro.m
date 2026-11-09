@@ -18,6 +18,13 @@ function disenar_filtro()
   fid = fopen(fullfile(base,'C','filter.h'),'w'); assert(fid>=0);
   fprintf(fid,'/* Generado por Octave/disenar_filtro.m; fs=8000 Hz */\n#ifndef TP7_FILTER_H\n#define TP7_FILTER_H\n#define N 129\nstatic const double h[N] = {\n');
   fprintf(fid,'%.17g,\n',h); fprintf(fid,'};\n#endif\n'); fclose(fid);
+  % Exportar tambien a float para el FIR temporal de la placa.
+  destino = fullfile(base,'MXCube','TP7','Core','Inc');
+  if exist(destino,'dir')
+    fid=fopen(fullfile(destino,'tp7_fir_coeffs.h'),'w'); assert(fid>=0);
+    fprintf(fid,'/* Generado por Octave/disenar_filtro.m. No editar a mano. */\n#ifndef TP7_FIR_COEFFS_H\n#define TP7_FIR_COEFFS_H\n#define TP7_FIR_TAPS 129U\n#define TP7_FIR_FS_HZ 8000U\n#define TP7_FIR_CUTOFF_HZ 200U\nstatic const float fir_h[TP7_FIR_TAPS] = {\n');
+    fprintf(fid,'%.9ef,\n',single(h)); fprintf(fid,'};\n#endif\n'); fclose(fid);
+  end
   fid = fopen(fullfile(base,'Resultados','diseno.csv'),'w');
   fprintf(fid,'fs_Hz,taps,retardo_muestras,corte_Hz,ganancia_corte_dB,borde_paso_verificado_Hz,borde_rechazo_Hz,perdida_max_paso_dB,atenuacion_rechazo_dB\n');
   fprintf(fid,'%d,%d,%d,%d,%.9g,%d,%d,%.9g,%.9g\n',fs,length(h),64,fc,corte_dB,fp,fr,-min(paso),rechazo); fclose(fid);
